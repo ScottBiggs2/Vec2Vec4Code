@@ -25,7 +25,7 @@ This project adapts the groundbreaking [vec2vec paper](https://arxiv.org/abs/250
 ### Setup
 ```bash
 # Clone the repository
-git clone [YOUR_REPO_URL]
+git clone [https://github.com/ScottBiggs2/Vec2Vec4Code/tree/main]
 cd vec2vec-code-translation
 
 # Install Python dependencies
