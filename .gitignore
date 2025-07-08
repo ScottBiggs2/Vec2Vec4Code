@@ -1,0 +1,35 @@
+# Ignore operating system files
+.DS_Store
+Thumbs.db
+
+# Ignore data and saved models for development convenience
+models/
+data/
+
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.iml
+
+# Ignore Python-specific files
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Ignore virtual environment files
+venv/
+env/
+
+# Ignore log files
+*.log
+
+# Ignore bytecode files
+*.pyo
+*.pyd
+
+# Ignore gitignore backups
+*.gitignore~
+
+# Add any specific files or directories you want to ignore
+# (e.g., sensitive data, build artifacts, etc.)
