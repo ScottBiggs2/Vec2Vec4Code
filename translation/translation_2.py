@@ -29,18 +29,20 @@ class CodeTranslator:
     Main class for translating code between Python and C using trained Vec2Vec model
     """
     
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, ollama_url: str = "http://localhost:11434"):
         # Load the trained vec2vec model
         self.model, self.checkpoint = self.load_model(model_path)
         self.embedding_dim = self.checkpoint['embedding_dim']
         
         # Initialize the code embedder (same model used for training)
         self.embedder = CodeEmbedder()
-        
-        # Optional: Load full model for cleaning (only if needed)
-        self.cleanup_model = None
-        
+
+        # Ollama settings for cleanup
+        self.ollama_url = ollama_url
+        self.ollama_model_name = "deepseek-coder:1.3B"
+
         print(f"✅ Loaded vec2vec model with {self.embedding_dim}D embeddings")
+        print(f"🔗 Using Ollama for cleanup at {self.ollama_url}")
     
     def load_model(self, model_path: str):
         """Load the trained Vec2Vec model"""
@@ -155,12 +157,17 @@ class CodeTranslator:
         final_embedding = self.get_embedding(final_code)
         confidence = F.cosine_similarity(target_embedding, final_embedding, dim=1).item()
         
+        return final_code, confidence
+        
     def tokens_to_code(self, tokens: List[int]) -> str:
         """Convert tokens back to code using tokenizer"""
         return self.embedder.tokenizer.decode(tokens, skip_special_tokens=True)
     
     def should_clean_code(self, code: str, target_lang: str) -> bool:
         """Determine if code needs LLM cleaning"""
+        # Simple heuristic: if the code is very short or lacks basic keywords, it's likely garbled.
+        if len(code.strip()) < 10:
+            return True
         if target_lang == 'python':
             # Check if it looks like valid Python
             return not any(keyword in code for keyword in ['def ', 'import ', 'print(', 'for ', 'if '])
@@ -169,48 +176,53 @@ class CodeTranslator:
             return not any(keyword in code for keyword in ['#include', 'int main', 'printf(', 'for(', 'if('])
     
     def clean_with_llm(self, raw_code: str, target_lang: str) -> str:
-        """Use LLM to clean up the raw tokenizer output"""
+        """Use Ollama to clean up the raw, decoded code string."""
+        print("🧹 Cleaning up generated code with Ollama...")
         
-        # Load model only when needed
-        if self.cleanup_model is None:
-            print("🧹 Loading cleanup model...")
-            self.cleanup_model = AutoModelForCausalLM.from_pretrained(self.embedder.model_name)
-            self.cleanup_model.eval()
-        
-        if target_lang == 'python':
-            prompt = f"Convert this token sequence into clean, executable Python code:\n\n{raw_code}\n\nClean Python code:"
-        else:  # target_lang == 'c'
-            prompt = f"Convert this token sequence into clean, compilable C code:\n\n{raw_code}\n\nClean C code:"
+        lang_name = "Python" if target_lang == 'python' else "C"
+        prompt = f"""
+        The following text is raw {target_lang} code. Review and revise it and return only clean, executable {target_lang} code.
+
+Do not add any explanations, comments, or markdown formatting. Only return the code block enclosed in backticks.
+
+Raw code:
+'''{raw_code}'''
+"""
         
         try:
-            # Tokenize prompt
-            inputs = self.embedder.tokenizer.encode(prompt, return_tensors='pt')
+            response = requests.post(
+                f"{self.ollama_url}/api/generate",
+                json={
+                    "model": self.ollama_model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.1,
+                        "num_predict": 250  # Max tokens to generate
+                    }
+                }
+            )
             
-            # Generate cleanup
-            with torch.no_grad():
-                outputs = self.cleanup_model.generate(
-                    inputs,
-                    max_length=inputs.shape[1] + 100,
-                    do_sample=True,
-                    temperature=0.3,
-                    pad_token_id=self.embedder.tokenizer.eos_token_id
-                )
-            
-            # Decode and extract the cleaned code
-            generated_text = self.embedder.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            
-            # Extract the part after the prompt
-            if "Clean Python code:" in generated_text:
-                cleaned = generated_text.split("Clean Python code:")[-1].strip()
-            elif "Clean C code:" in generated_text:
-                cleaned = generated_text.split("Clean C code:")[-1].strip()
+            if response.status_code == 200:
+                cleaned = response.json().get('response', '').strip()
+                # LLMs sometimes wrap code in markdown, let's strip it.
+                if cleaned.startswith(f"```{target_lang}"):
+                    cleaned = cleaned.split('\n', 1)[1]
+                    if cleaned.endswith("```"):
+                        cleaned = cleaned[:-3].strip()
+                elif cleaned.startswith("```"):
+
+                    return cleaned if cleaned else raw_code
             else:
-                cleaned = generated_text[len(prompt):].strip()
-            
-            return cleaned if cleaned else raw_code
-            
+                print(f"⚠️  Ollama API error: {response.status_code} - {response.text}")
+                return raw_code
+
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️  LLM cleaning failed: Could not connect to Ollama at {self.ollama_url}. Error: {e}")
+            print("Please ensure Ollama is running and the model is pulled: `ollama pull deepseek-coder:1.3B`")
+            return raw_code
         except Exception as e:
-            print(f"⚠️  LLM cleaning failed: {e}")
+            print(f"⚠️  LLM cleaning failed with an unexpected error: {e}")
             return raw_code
     
     def translate_code(self, code: str, source_lang: str, target_lang: str) -> Tuple[str, float]:
