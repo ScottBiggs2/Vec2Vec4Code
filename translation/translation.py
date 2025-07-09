@@ -8,17 +8,12 @@ import tempfile
 from typing import Optional, Tuple
 import argparse
 
-from data.data import PYTHON_SAMPLES, C_SAMPLES
-from blocks.core import CodeVec2Vec, Vec2VecTrainer
-from saving.saving import save_vec2vec_model, load_vec2vec_model
-from demo.demo import demo_vec2vec_code_translation
-
 class CodeTranslator:
     """
     Main class for translating code between Python and C using trained Vec2Vec model
     """
     
-    def __init__(self, model_path: str = "models/python_c_translator_20250708_153052.pth",  ollama_url: str = "http://localhost:11434"):
+    def __init__(self, model_path: str, ollama_url: str = "http://localhost:11434"):
         self.ollama_url = ollama_url
         self.model_name = "deepseek-coder:1.3B"
         
@@ -31,7 +26,20 @@ class CodeTranslator:
     
     def load_model(self, model_path: str):
         """Load the trained Vec2Vec model"""
-        from main import CodeVec2Vec  # Import your model class
+        # Import model classes from your blocks module
+        try:
+            from blocks.core import CodeVec2Vec
+        except ImportError:
+            # Fallback for different directory structures
+            try:
+                import sys
+                sys.path.append('.')
+                from blocks.core import CodeVec2Vec
+            except ImportError:
+                print("❌ Could not import CodeVec2Vec from blocks.core")
+                print("Make sure you're running from the project root directory")
+                print("Current working directory:", os.getcwd())
+                raise
         
         checkpoint = torch.load(model_path, map_location='cpu')
         
@@ -527,3 +535,4 @@ if __name__ == "__main__":
 # python translator.py models/your_model_file.pth --demo
 # python translation/translation.py models/python_c_translator_20
 # 250808_153052.pth --demo
+# python_c_translator_20250708_153052.pth

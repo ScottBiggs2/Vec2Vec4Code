@@ -88,6 +88,8 @@ vec2vec-code-translation/
 ├── models/                # (Omitted from repo for brevity) Saved model directory
 │   ├── *.pth              # Model weights
 │   └── *_metadata.json    # Training metadata json
+├── translation/           # Example of translating python to/from C
+│   └── translation.py     # Snowflake translation demo
 ├── README.md              # This file
 ├── .gitignore             # Ignore these files (ignores data, venv, and models for brevity)
 └── requirements.txt       # Python dependencies
