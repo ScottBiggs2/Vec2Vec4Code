@@ -5,7 +5,10 @@ Thumbs.db
 # Ignore data and saved models for development convenience
 models/
 data/
+scraped_code/
 
+# Ignore specific large data storage file
+large_training_data.py
 
 # Ignore IDE and editor files
 .vscode/

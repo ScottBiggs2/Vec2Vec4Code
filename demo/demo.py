@@ -11,15 +11,16 @@ from data.data import PYTHON_SAMPLES, C_SAMPLES
 from blocks.core import CodeVec2Vec, CodeEmbedder, Vec2VecTrainer
 from saving.saving import save_vec2vec_model, load_vec2vec_model
 
-def demo_vec2vec_code_translation():
+def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 50):
     """Demonstrate the Vec2Vec code translation MVP"""
     print("=== Vec2Vec Code Translation MVP ===")
     print("Initializing DeepSeek Coder embedder via Ollama...")
-    training_epochs = 200
     
     # Initialize the Ollama-based DeepSeek Coder embedder
     try:
-        embedder = CodeEmbedder("deepseek-coder:1.3B")
+        # embedder = CodeEmbedder("deepseek-coder:1.3B")
+        embedder = CodeEmbedder()
+
         print("Successfully connected to Ollama!")
         
         print("Generating real embeddings for Python code...")
@@ -47,6 +48,14 @@ def demo_vec2vec_code_translation():
     
     print(f"Python embeddings shape: {py_embeddings.shape}")
     print(f"C embeddings shape: {c_embeddings.shape}")
+
+    if not py_embeddings.shape == c_embeddings.shape:
+        print(f"Trimming embeddings to match")
+        min_length = min(py_embeddings.shape[0], c_embeddings.shape[0])
+        py_embeddings = py_embeddings[:min_length]
+        c_embeddings = c_embeddings[:min_length]
+        print(f"Python embeddings shape: {py_embeddings.shape}")
+        print(f"C embeddings shape: {c_embeddings.shape}")
     
     # Show some basic embedding statistics
     print(f"Python embedding mean: {py_embeddings.mean():.4f}, std: {py_embeddings.std():.4f}")

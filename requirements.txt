@@ -4,3 +4,5 @@ matplotlib
 typing
 random
 json
+urllib
+bs4
