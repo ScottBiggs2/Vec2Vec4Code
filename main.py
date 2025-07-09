@@ -22,8 +22,6 @@ if __name__ == "__main__":
 
     demo_vec2vec_code_translation()
 
-
-# python translator.py models/your_model_file.pth --demo
-# python translation/translation.py models/python_c_translator_20
-# 250808_153052.pth --demo
-# python_c_translator_20250708_153052.pth
+# Example commands to run the translator:
+# python translation/translation.py models/your_model_file.pth --demo
+# python translation/translation.py models/python_c_translator_20250808_153052.pth --demo

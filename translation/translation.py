@@ -466,7 +466,7 @@ def interactive_translator(model_path: str):
     print("Enter 'quit' to exit, 'demo' for snowflake demo")
     
     translator = CodeTranslator(model_path)
-    code_db = create_snowflake_database()
+    code_db = create_snowflake_database() # build out larger code db for broader translations
     
     while True:
         print("\n" + "="*50)
@@ -508,6 +508,28 @@ def interactive_translator(model_path: str):
             print("-" * 40)
             print(translated)
             print("-" * 40)
+
+            # Run original code
+            if source_lang == 'python':
+                print("\n🚀 Running original Python code:")
+                python_output = run_python_code(code)
+                print(python_output)
+            elif source_lang == 'c':
+                print("\n🚀 Running original C code:")
+                c_output = compile_and_run_c(code)
+                print(c_output)
+
+            # Run translated code
+            if target_lang == 'python':
+                print("\n🚀 Running translated Python code:")
+                python_output = run_python_code(translated)
+                print(python_output)
+            elif target_lang == 'c':
+                print("\n🚀 Running translated C code:")
+                c_output = compile_and_run_c(translated)
+                print(c_output)
+
+
         else:
             print("❌ Unknown command. Use 'translate', 'demo', or 'quit'")
 
@@ -521,7 +543,7 @@ if __name__ == "__main__":
     
     if not os.path.exists(args.model_path):
         print(f"❌ Model file not found: {args.model_path}")
-        exit(1)
+        # exit(1)
     
     if args.demo:
         snowflake_demo(args.model_path)
