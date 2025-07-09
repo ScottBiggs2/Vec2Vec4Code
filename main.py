@@ -24,4 +24,4 @@ if __name__ == "__main__":
 
 # Example commands to run the translator:
 # python translation/translation.py models/your_model_file.pth --demo
-# python translation/translation.py models/python_c_translator_20250808_153052.pth --demo
+# python translation/translation.py models/python_c_translator_20250708_194151.pth --demo
