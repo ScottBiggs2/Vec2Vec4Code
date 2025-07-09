@@ -8,6 +8,8 @@ import tempfile
 from typing import Optional, Tuple
 import argparse
 
+# This version does a RAG style search for code examples, not true translation. Still, cool demo
+
 class CodeTranslator:
     """
     Main class for translating code between Python and C using trained Vec2Vec model
@@ -553,8 +555,3 @@ if __name__ == "__main__":
         print("Use --demo or --interactive flag")
         parser.print_help()
 
-
-# python translator.py models/your_model_file.pth --demo
-# python translation/translation.py models/python_c_translator_20
-# 250808_153052.pth --demo
-# python_c_translator_20250708_153052.pth
