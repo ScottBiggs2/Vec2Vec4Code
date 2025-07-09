@@ -88,12 +88,13 @@ class CodeTranslator:
         # produce the closest embedding to our target
         with torch.no_grad():
             # Get all possible token embeddings
-            all_token_embeddings = self.embedder.embedding_matrix  # [vocab_size, embed_dim]
+            all_token_embeddings = self.embedder.embedding_layer.weight
             
             # Find most similar tokens to our target embedding
+            # target_embedding is [1, embed_dim], all_token_embeddings is [vocab_size, embed_dim]
             similarities = F.cosine_similarity(
-                target_embedding.unsqueeze(0),  # [1, embed_dim]
-                all_token_embeddings,          # [vocab_size, embed_dim]
+                target_embedding,
+                all_token_embeddings,
                 dim=1
             )  # [vocab_size]
             
@@ -453,4 +454,4 @@ if __name__ == "__main__":
         parser.print_help()
 
 
-# python translation/translation_2.py models/python_c_translator_20250709_123748.pth --demo
+# python translation/translation_2.py models/python_c_translator_20250709_142739.pth --demo

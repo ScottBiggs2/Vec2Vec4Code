@@ -40,7 +40,7 @@ def demo_vec2vec_code_translation():
         print("  4. Install requests: pip install requests")
         
         # Fallback to simulated embeddings
-        embedding_dim = 4096  # DeepSeek Coder embedding dimension
+        embedding_dim = 2048  # DeepSeek Coder 1.3B hidden state dimension - fromerly 4096
         py_embeddings = torch.randn(len(PYTHON_SAMPLES), embedding_dim)
         c_embeddings = torch.randn(len(C_SAMPLES), embedding_dim)
         print(f"Using simulated embeddings with dimension: {embedding_dim}")

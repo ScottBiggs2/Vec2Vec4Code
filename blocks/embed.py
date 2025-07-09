@@ -50,7 +50,7 @@ class CodeEmbedder:
                 return_tensors="pt"
             )
             
-            # Get hidden states from the model (4096-dim)
+            # Get hidden states from the model (2048-dim for 1.3b-base) (fromerly 4096)
             outputs = self.model(**inputs, output_hidden_states=True)
             # Use mean pooling of last hidden state
             embeddings = outputs.hidden_states[-1].mean(dim=1)
