@@ -15,7 +15,7 @@ def demo_vec2vec_code_translation():
     """Demonstrate the Vec2Vec code translation MVP"""
     print("=== Vec2Vec Code Translation MVP ===")
     print("Initializing DeepSeek Coder embedder via Ollama...")
-    training_epochs = 50
+    training_epochs = 200
     
     # Initialize the Ollama-based DeepSeek Coder embedder
     try:

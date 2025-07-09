@@ -467,3 +467,4 @@ if __name__ == "__main__":
 
 
 # python translation/translation_2.py models/python_c_translator_20250709_142739.pth --demo
+# python translation/translation_2.py models/python_c_translator_20250709_152907.pth --demo
