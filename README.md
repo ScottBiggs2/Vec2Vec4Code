@@ -10,16 +10,18 @@ This project adapts the groundbreaking [vec2vec paper](https://arxiv.org/abs/250
 
 - **No A/B Pairs Required**: Trains on unpaired Python and C code samples
 - **Bidirectional Translation**: Python → C and C → Python embedding translation
-- **Real Model Integration**: Uses DeepSeek Coder via Ollama for authentic code embeddings
+- **Real Model Integration**: Uses DeepSeek Coder via transformers for authentic code embeddings
 - **Precision Training**: Optimized for high-similarity fine-tuning (0.92 → 0.99+)
 - **Model Persistence**: Save/load trained models with metadata
 - **Comprehensive Evaluation**: Similarity metrics, cycle consistency, and training progress
+- **Training Data Collection**: Script for scraping and saving Python and C education sites for code snippets
 
 ## 🛠️ Installation
 
 ### Prerequisites
 - Python 3.8+
 - [Ollama](https://ollama.ai/) for model serving
+- HuggingFace transformers for CausalLM and AutoTokenizer
 - DeepSeek Coder model
 
 ### Setup
@@ -77,19 +79,24 @@ The implementation follows the original vec2vec architecture with adaptations fo
 
 ```
 vec2vec-code-translation/
-├── main.py                # Run the demo script
+├── main.py                # Run the demo script, notes on full translation commands
 ├── blocks/                # 
 │   ├── core.py            # Core model and training functions
 │   └── embed.py           # Code embedding construction function
 ├── saving/                # (Omitted from repo for brevity) Store C and Python code samples
 │   └── saving.py          # functions for saving the Vec2Vec4Code model weights and metadata
-├── data/                  # (Omitted from repo for brevity) Store C and Python code samples
-│   └── data.py            # C and Python code snippets stored as short strings
+├── data/                  # Depricated - (Omitted from repo for brevity) Store C and Python code samples
+│   └── data.py            # Depricated - C and Python code snippets stored as short strings
 ├── models/                # (Omitted from repo for brevity) Saved model directory
 │   ├── *.pth              # Model weights
 │   └── *_metadata.json    # Training metadata json
 ├── translation/           # Example of translating python to/from C
-│   └── translation.py     # Snowflake translation demo
+│   ├── translation_2.py   # Translation demo
+│   └── translation.py     # Depricated - Snowflake translation demo
+├── code_scraping/         # Script to scrape code snippets
+│   └── scraper.py         # Script to scrape C and Pythod education webpages for code snippets
+├── scraped_code/          # (Omitted from repo for brevity) Script to scrape code snippets
+│   └── ...                # .py files holding scraped snippets as strings to combine for training
 ├── README.md              # This file
 ├── .gitignore             # Ignore these files (ignores data, venv, and models for brevity)
 └── requirements.txt       # Python dependencies

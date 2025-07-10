@@ -14,14 +14,14 @@ from saving.saving import save_vec2vec_model, load_vec2vec_model
 def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 50):
     """Demonstrate the Vec2Vec code translation MVP"""
     print("=== Vec2Vec Code Translation MVP ===")
-    print("Initializing DeepSeek Coder embedder via Ollama...")
+    print("Initializing DeepSeek Coder embedder using transformers")
     
     # Initialize the Ollama-based DeepSeek Coder embedder
     try:
         # embedder = CodeEmbedder("deepseek-coder:1.3B")
         embedder = CodeEmbedder()
 
-        print("Successfully connected to Ollama!")
+        print("Successfully connected to transformers!")
         
         print("Generating real embeddings for Python code...")
         py_embeddings = embedder.embed_code_batch(PYTHON_SAMPLES)
@@ -33,12 +33,7 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
         print(f"Using real embeddings with dimension: {embedding_dim}")
         
     except Exception as e:
-        print(f"Could not use Ollama ({e}), falling back to simulated embeddings...")
-        print("To use real embeddings via Ollama:")
-        print("  1. Install Ollama: https://ollama.ai/")
-        print("  2. Start Ollama: ollama serve")
-        print("  3. Pull DeepSeek model: ollama pull deepseek-coder:1.3B")
-        print("  4. Install requests: pip install requests")
+        print(f"Could not use transformers ({e}), falling back to simulated embeddings...")
         
         # Fallback to simulated embeddings
         embedding_dim = 2048  # DeepSeek Coder 1.3B hidden state dimension - fromerly 4096
