@@ -48,9 +48,15 @@ ollama pull deepseek-coder:1.3B
 python main.py
 
 # Expected output:
-# Initial cross-language similarity: 0.9223
-# Training for 200 epochs...
-# 🎉 SUCCESS: Achieved 0.99+ similarity!
+
+#=== Results Analysis ===
+#Initial similarity: 0.6787
+#Final similarity: 0.8280
+#Change: 0.1493
+#✅ Vec2vec successfully improved cross-language alignment!
+
+#Cycle consistency: 0.8836
+#✅ Excellent cycle consistency - translations are reversible
 ```
 
 ## 🏗️ Architecture
@@ -120,12 +126,14 @@ The demo includes equivalent Python/C code pairs for testing:
 
 ### Typical Results
 ```
-Initial similarity: 0.9223
-Final similarity: 0.9934
-Improvement: +0.0711
-Python → C: 0.9943
-C → Python: 0.9925
-Cycle consistency: 0.9678
+=== Results Analysis ===
+Initial similarity: 0.6787
+Final similarity: 0.8280
+Change: 0.1493
+✅ Vec2vec successfully improved cross-language alignment!
+
+Cycle consistency: 0.8836
+✅ Excellent cycle consistency - translations are reversible
 ```
 
 ## 🔬 Research Insights
@@ -142,6 +150,11 @@ Cycle consistency: 0.9678
 - [ ] Scale to larger datasets (GitHub repositories)
 - [ ] Add semantic equivalence evaluation
 - [ ] Domain adaptation (academic → production code)
+
+## To-do: 
+- [] More refined embeddings to tokens function in translation_2.py, current method is poor
+- [] Upgrade code cleanup model from DeepSeek-Coder 1.3B. Maybe return to typical non-coding LLM?
+- [] Demonstrate quality translation of non-trivial code that is outside the training dataset
 
 ## 📚 References
 

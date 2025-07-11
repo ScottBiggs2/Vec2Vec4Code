@@ -25,7 +25,7 @@ if __name__ == "__main__":
     python_samples = LARGE_PYTHON_SAMPLES
     c_samples = LARGE_C_SAMPLES
 
-    demo_vec2vec_code_translation(python_samples, c_samples, training_epochs = 50)
+    demo_vec2vec_code_translation(python_samples, c_samples, training_epochs = 500)
 
     # model_path = "models/python_c_translator_20250708_221459.pth"
     # code = """ print(f"Hello World") """

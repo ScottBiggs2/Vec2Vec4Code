@@ -101,7 +101,7 @@ class CodeTranslator:
             )  # [vocab_size]
             
             # Get top tokens
-            top_k = 50  # Get more tokens for better sequence building
+            top_k = 250  # Get more tokens for better sequence building
             top_indices = similarities.topk(top_k).indices.tolist()
             
             # Build a sequence from these top tokens
@@ -166,14 +166,15 @@ class CodeTranslator:
     def should_clean_code(self, code: str, target_lang: str) -> bool:
         """Determine if code needs LLM cleaning"""
         # Simple heuristic: if the code is very short or lacks basic keywords, it's likely garbled.
-        if len(code.strip()) < 10:
-            return True
-        if target_lang == 'python':
-            # Check if it looks like valid Python
-            return not any(keyword in code for keyword in ['def ', 'import ', 'print(', 'for ', 'if '])
-        else:  # target_lang == 'c'
-            # Check if it looks like valid C
-            return not any(keyword in code for keyword in ['#include', 'int main', 'printf(', 'for(', 'if('])
+        # if len(code.strip()) < 10:
+        #     return True
+        # if target_lang == 'python':
+        #     # Check if it looks like valid Python
+        #     return not any(keyword in code for keyword in ['def ', 'import ', 'print(', 'for ', 'if '])
+        # else:  # target_lang == 'c'
+        #     # Check if it looks like valid C
+        #     return not any(keyword in code for keyword in ['#include', 'int main', 'printf(', 'for(', 'if('])
+        return 1 # override to always clean up the code
     
     def clean_with_llm(self, raw_code: str, target_lang: str) -> str:
         """Use Ollama to clean up the raw, decoded code string."""
@@ -466,5 +467,4 @@ if __name__ == "__main__":
         parser.print_help()
 
 
-# python translation/translation_2.py models/python_c_translator_20250709_142739.pth --demo
-# python translation/translation_2.py models/python_c_translator_20250709_161104.pth --demo
+# python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo
