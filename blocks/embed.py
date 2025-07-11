@@ -32,6 +32,9 @@ class CodeEmbedder:
         # Add padding token if not exists
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        # Explicitly set the pad_token_id on the model's generation config to avoid warnings
+        self.model.generation_config.pad_token_id = self.tokenizer.pad_token_id
             
         # Get the embedding and output layers
         self.embedding_layer = self.model.get_input_embeddings()  # embedding matrix
@@ -112,3 +115,28 @@ class CodeEmbedder:
             all_embeddings.append(batch_embeddings)
         
         return torch.cat(all_embeddings, dim=0)
+
+    def embedding_to_code_with_generate(self, embedding: torch.Tensor, max_new_tokens: int = 256, num_beams: int = 5) -> str:
+        """
+        Convert a single embedding vector back to a code string using beam search.
+        This treats the input embedding as the initial state for the generator.
+        """
+        # The `generate` function expects inputs_embeds to be [batch_size, seq_len, hidden_dim].
+        # Our input is [batch_size, hidden_dim]. We'll treat it as a sequence of length 1.
+        inputs_embeds = embedding.unsqueeze(1)  # -> [batch_size, 1, hidden_dim]
+
+        # Ensure the embedding is on the same device as the model
+        inputs_embeds = inputs_embeds.to(self.model.device)
+
+        with torch.no_grad():
+            output_sequences = self.model.generate(
+                inputs_embeds=inputs_embeds,
+                max_new_tokens=max_new_tokens,
+                num_beams=num_beams,
+                early_stopping=True,
+                pad_token_id=self.tokenizer.pad_token_id,
+                eos_token_id=self.tokenizer.eos_token_id,
+                num_return_sequences=1,
+            )
+
+        return self.tokenizer.decode(output_sequences[0], skip_special_tokens=True)

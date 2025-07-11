@@ -75,94 +75,6 @@ class CodeTranslator:
         """Get embedding for a code string using tokenizer embeddings"""
         return self.embedder.embed_code([code])
     
-    def embedding_to_tokens(self, target_embedding: torch.Tensor, target_lang: str) -> List[int]:
-        """
-        Convert embedding directly to tokens using vec2vec trained space
-        No similarity search - direct token generation from embedding
-        """
-        
-        print(f"🧠 Converting embedding to {target_lang} tokens...")
-        
-        # Use the trained vec2vec model to decode embedding to tokens
-        # This assumes the vec2vec model learned token-level mappings
-        
-        # For now, let's use a simple approach: find the tokens that would 
-        # produce the closest embedding to our target
-        with torch.no_grad():
-            # Get all possible token embeddings
-            all_token_embeddings = self.embedder.embedding_layer.weight
-            
-            # Find most similar tokens to our target embedding
-            # target_embedding is [1, embed_dim], all_token_embeddings is [vocab_size, embed_dim]
-            similarities = F.cosine_similarity(
-                target_embedding,
-                all_token_embeddings,
-                dim=1
-            )  # [vocab_size]
-            
-            # Get top tokens
-            top_k = 250  # Get more tokens for better sequence building
-            top_indices = similarities.topk(top_k).indices.tolist()
-            
-            # Build a sequence from these top tokens
-            # Simple approach: take the most similar tokens and try to form coherent sequence
-            
-            if target_lang == 'python':
-                # Look for Python-relevant tokens
-                python_tokens = []
-                for idx in top_indices:
-                    token_text = self.embedder.tokenizer.decode([idx])
-                    if any(keyword in token_text.lower() for keyword in ['def', 'print', 'import', 'for', 'if', 'return']):
-                        python_tokens.append(idx)
-                
-                # Start with a reasonable sequence
-                if python_tokens:
-                    return python_tokens[:10]  # Return first 10 relevant tokens
-                else:
-                    return top_indices[:10]    # Fallback to top similar tokens
-            
-            else:  # target_lang == 'c'
-                # Look for C-relevant tokens
-                c_tokens = []
-                for idx in top_indices:
-                    token_text = self.embedder.tokenizer.decode([idx])
-                    if any(keyword in token_text.lower() for keyword in ['#include', 'printf', 'int', 'main', 'for', 'if', 'return']):
-                        c_tokens.append(idx)
-                
-                # Start with a reasonable sequence
-                if c_tokens:
-                    return c_tokens[:10]
-                else:
-                    return top_indices[:10]
-    
-    def embedding_to_code(self, target_embedding: torch.Tensor, target_lang: str) -> Tuple[str, float]:
-        """
-        Convert embedding to code via direct tokenization
-        """
-        
-        # Get tokens from embedding
-        tokens = self.embedding_to_tokens(target_embedding, target_lang)
-        
-        # Decode tokens to code
-        raw_code = self.tokens_to_code(tokens)
-        
-        # Check if we need cleanup
-        if self.should_clean_code(raw_code, target_lang):
-            cleaned_code = self.clean_with_llm(raw_code, target_lang)
-            final_code = cleaned_code if cleaned_code else raw_code
-        else:
-            final_code = raw_code
-        
-        # Calculate confidence by checking how close the final code's embedding is to target
-        final_embedding = self.get_embedding(final_code)
-        confidence = F.cosine_similarity(target_embedding, final_embedding, dim=1).item()
-        
-        return final_code, confidence
-        
-    def tokens_to_code(self, tokens: List[int]) -> str:
-        """Convert tokens back to code using tokenizer"""
-        return self.embedder.tokenizer.decode(tokens, skip_special_tokens=True)
-    
     def should_clean_code(self, code: str, target_lang: str) -> bool:
         """Determine if code needs LLM cleaning"""
         # Simple heuristic: if the code is very short or lacks basic keywords, it's likely garbled.
@@ -253,21 +165,22 @@ Raw code:
             else:
                 return "ERROR: Unsupported language pair", 0.0
         
-        # Step 4: Embedding → Tokens (direct mapping)
-        print(f"🧠 Converting to {target_lang} tokens...")
-        target_tokens = self.embedding_to_tokens(target_embedding, target_lang)
+        # Step 4: Embedding -> Code (using beam search)
+        print(f"🧠 Generating {target_lang} code from embedding using beam search...")
+        raw_code = self.embedder.embedding_to_code_with_generate(
+            target_embedding,
+            max_new_tokens=256,  # A reasonable max length for generated code
+            num_beams=5      # Standard beam search width
+        )
         
-        # Step 5: Tokens → Code
-        raw_code = self.tokens_to_code(target_tokens)
-        
-        # Step 6: Optional cleanup
+        # Step 5: Optional cleanup
         if self.should_clean_code(raw_code, target_lang):
             cleaned_code = self.clean_with_llm(raw_code, target_lang)
             final_code = cleaned_code if cleaned_code else raw_code
         else:
             final_code = raw_code
         
-        # Calculate confidence
+        # Step 6: Calculate confidence
         final_embedding = self.get_embedding(final_code)
         confidence = F.cosine_similarity(target_embedding, final_embedding, dim=1).item()
         
