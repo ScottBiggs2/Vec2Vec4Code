@@ -39,7 +39,7 @@ class CodeTranslator:
 
         # Ollama settings for cleanup
         self.ollama_url = ollama_url
-        self.ollama_model_name = "deepseek-coder:1.3B"
+        self.ollama_model_name = "deepseek-coder:1.3B" 
 
         print(f"✅ Loaded vec2vec model with {self.embedding_dim}D embeddings")
         print(f"🔗 Using Ollama for cleanup at {self.ollama_url}")
