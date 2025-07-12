@@ -42,6 +42,9 @@ class CodeEmbedder:
         
         print(f"✅ Loaded model with {self.embedding_layer.weight.shape[0]} vocab, {self.embedding_layer.weight.shape[1]}D embeddings")
     
+    # To-do: 
+    # Investigate embedding structure Should be 1 program : 1 embedding
+    # Add system prompt
     def embed_code(self, code_strings: List[str]) -> torch.Tensor:
         """Convert code strings to embeddings using HIDDEN STATES (not token embeddings)"""
         with torch.no_grad():
