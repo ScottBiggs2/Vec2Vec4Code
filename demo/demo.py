@@ -69,7 +69,7 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
     
     # Initialize Vec2Vec model
     print("\nInitializing Vec2Vec model...")
-    model = CodeVec2Vec(embedding_dim, latent_dim=256)
+    model = CodeVec2Vec(embedding_dim, latent_dim=256) # tune for size/depth
     trainer = Vec2VecTrainer(model)
     
     # print("Training Vec2Vec model...")

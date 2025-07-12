@@ -27,6 +27,7 @@ class Vec2VecAdapter(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
+# update for latent space size, depth, and add residual connections
 class Vec2VecBackbone(nn.Module):
     """Shared backbone network for universal latent space"""
     

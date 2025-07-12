@@ -379,4 +379,4 @@ if __name__ == "__main__":
 
 
 # python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo
-# python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo
+# python translation/translation_2.py models/python_c_translator_20250711_221956.pth --demo
