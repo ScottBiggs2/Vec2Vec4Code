@@ -18,6 +18,7 @@ import subprocess
 class SimpleCodeCollector:
     def __init__(self, output_dir: str = "scraped_code"):
         self.output_dir = output_dir
+        self.max_snippets = 100 # override indivual methods' max_snippets args
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -66,10 +67,10 @@ class SimpleCodeCollector:
         """Validate that code snippet is reasonable"""
         
         # Basic checks
-        if len(code) < 30 or len(code) > 1500:
+        if len(code) < 30 or len(code) > 3000:
             return False
         
-        if code.count('\n') < 3:
+        if code.count('\n') < 12:
             return False
         
         # Language-specific validation
@@ -117,6 +118,7 @@ class SimpleCodeCollector:
     def scrape_rosetta_code(self, language: str, max_snippets: int = 50) -> List[str]:
         """Scrape code examples from Rosetta Code"""
         snippets = []
+        max_snippets = self.max_snippets 
         
         # Rosetta Code has great algorithm examples
         tasks = [
@@ -167,6 +169,8 @@ class SimpleCodeCollector:
     def scrape_geeks_for_geeks(self, language: str, max_snippets: int = 30) -> List[str]:
         """Scrape code examples from GeeksforGeeks"""
         snippets = []
+        max_snippets = self.max_snippets
+
         
         if language == 'python':
             topics = [
@@ -222,6 +226,7 @@ class SimpleCodeCollector:
     def scrape_programiz(self, language: str, max_snippets: int = 30) -> List[str]:
         """Scrape code examples from Programiz"""
         snippets = []
+        max_snippets = self.max_snippets
         
         if language == 'python':
             base_url = "https://www.programiz.com/python-programming/examples"

@@ -219,12 +219,4 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
     )
 
     print("\n=== MVP Complete ===")
-    print("Key Insights:")
-    print("1. DeepSeek Coder already provides strong cross-language alignment")
-    print("2. Vec2vec is most useful when embeddings are NOT already aligned")
-    print("3. For already-aligned embeddings, focus on fine-tuning rather than major transformation")
-    print("\nNext steps:")
-    print("1. Test with models that have poor cross-language alignment")
-    print("2. Use vec2vec for domain adaptation (e.g., academic → production code)")
-    print("3. Apply to more distant language pairs (e.g., Python → Assembly)")
-    print("4. Implement embedding-to-code generation pipeline")
+    
