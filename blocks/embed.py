@@ -44,12 +44,24 @@ class CodeEmbedder:
     
     # To-do: 
     # Investigate embedding structure Should be 1 program : 1 embedding
-    # Add system prompt
-    def embed_code(self, code_strings: List[str]) -> torch.Tensor:
+    # Add system prompt - DONE
+    def embed_code(self, code_strings: List[str], language: str = None) -> torch.Tensor:
         """Convert code strings to embeddings using HIDDEN STATES (not token embeddings)"""
+        
+        # Prepare inputs with a system prompt to guide the model
+        prepared_inputs = []
+        for code in code_strings:
+            lang_name = "Code"
+            if language == 'python':
+                lang_name = "Python"
+            elif language == 'c':
+                lang_name = "C"
+            prompt = f"You are a universal code expert. Analyze the following {lang_name} snippet and create a semantic embedding that captures its core logic.\n\nCode:\n```\n{code}\n```"
+            prepared_inputs.append(prompt)
+
         with torch.no_grad():
             inputs = self.tokenizer(
-                code_strings, 
+                prepared_inputs,
                 padding=True, 
                 truncation=True, 
                 max_length=512,
@@ -105,16 +117,16 @@ class CodeEmbedder:
     def tokens_to_code(self, tokens: List[int]) -> str:
         """Convert tokens back to code using tokenizer"""
         return self.tokenizer.decode(tokens, skip_special_tokens=True)
-    
-    def embed_code_batch(self, code_strings: List[str], batch_size: int = 4) -> torch.Tensor:
+
+    def embed_code_batch(self, code_strings: List[str], batch_size: int = 4, language: str = None) -> torch.Tensor:
         """Embed code in batches for better performance"""
         all_embeddings = []
         
         for i in range(0, len(code_strings), batch_size):
             batch = code_strings[i:i+batch_size]
             print(f"Processing batch {i//batch_size + 1}/{(len(code_strings)-1)//batch_size + 1}")
-            
-            batch_embeddings = self.embed_code(batch)
+
+            batch_embeddings = self.embed_code(batch, language=language)
             all_embeddings.append(batch_embeddings)
         
         return torch.cat(all_embeddings, dim=0)

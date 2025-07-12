@@ -71,9 +71,9 @@ class CodeTranslator:
         
         return model, checkpoint
     
-    def get_embedding(self, code: str) -> torch.Tensor:
+    def get_embedding(self, code: str, lang: str) -> torch.Tensor:
         """Get embedding for a code string using tokenizer embeddings"""
-        return self.embedder.embed_code([code])
+        return self.embedder.embed_code([code], language=lang)
     
     def should_clean_code(self, code: str, target_lang: str) -> bool:
         """Determine if code needs LLM cleaning"""
@@ -150,10 +150,8 @@ Raw code:
         source_tokens = self.embedder.tokenizer.encode(code, truncation=True, max_length=512)
         
         # Step 2: Tokens → Embeddings (for vec2vec input)
-        # source_embeddings = self.embedder.embedding_layer[source_tokens]  # was embedding_matrix [seq_len, embed_dim]
-        source_embedding = self.get_embedding(code)  # Use the same method as training
-        # source_embeddings = self.embedder.embedding_layer(torch.tensor(source_tokens))  # [seq_len, embed_dim]
-        source_embedding = source_embedding.mean(dim=0).unsqueeze(0)  # [1, embed_dim]
+        # Get a single embedding vector for the source code.
+        source_embedding = self.get_embedding(code, source_lang)  # Shape: [1, embedding_dim]
         
         # Step 3: Embedding → Embedding (vec2vec)
         print(f"🔄 Translating {source_lang} → {target_lang} via vec2vec...")
@@ -181,7 +179,7 @@ Raw code:
             final_code = raw_code
         
         # Step 6: Calculate confidence
-        final_embedding = self.get_embedding(final_code)
+        final_embedding = self.get_embedding(final_code, target_lang)
         confidence = F.cosine_similarity(target_embedding, final_embedding, dim=1).item()
         
         print(f"✅ Translation complete! Confidence: {confidence:.4f}")
@@ -380,4 +378,5 @@ if __name__ == "__main__":
         parser.print_help()
 
 
+# python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo
 # python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo

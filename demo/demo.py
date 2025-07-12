@@ -24,10 +24,10 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
         print("Successfully connected to transformers!")
         
         print("Generating real embeddings for Python code...")
-        py_embeddings = embedder.embed_code_batch(PYTHON_SAMPLES)
+        py_embeddings = embedder.embed_code_batch(PYTHON_SAMPLES, language='python')
         
         print("Generating real embeddings for C code...")
-        c_embeddings = embedder.embed_code_batch(C_SAMPLES)
+        c_embeddings = embedder.embed_code_batch(C_SAMPLES, language='c')
         
         embedding_dim = py_embeddings.shape[1]
         print(f"Using real embeddings with dimension: {embedding_dim}")
@@ -117,25 +117,27 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
     
     with torch.no_grad():
         # Translate Python to C
-        py_to_c_translated = model.translate_py_to_c(py_embeddings[:3])
-        c_to_py_translated = model.translate_c_to_py(c_embeddings[:3])
+        py_to_c_translated = model.translate_py_to_c(py_embeddings)
+        c_to_py_translated = model.translate_c_to_py(c_embeddings)
         
         # Calculate similarities
         original_py_similarity = F.cosine_similarity(py_embeddings[0], py_embeddings[1], dim=0)
-        translated_similarity = F.cosine_similarity(py_to_c_translated[0], c_embeddings[0], dim=0)
+        py_to_c_sample_similarity = F.cosine_similarity(py_to_c_translated[0], c_embeddings[0], dim=0)
         
         print(f"Original Python embedding similarity: {original_py_similarity:.4f}")
-        print(f"Python->C translation similarity: {translated_similarity:.4f}")
+        print(f"Python->C translation similarity (sample): {py_to_c_sample_similarity:.4f}")
         
         # Test cycle consistency
         py_cycled = model.translate_c_to_py(py_to_c_translated)
-        cycle_similarity = F.cosine_similarity(py_embeddings[:3], py_cycled, dim=1).mean()
+        cycle_similarity = F.cosine_similarity(py_embeddings, py_cycled, dim=1).mean()
         print(f"Cycle consistency (Python->C->Python): {cycle_similarity:.4f}")
         
         # Show improvement in cross-language alignment
-        final_similarity = F.cosine_similarity(py_to_c_translated, c_embeddings[:3], dim=1).mean()
-        print(f"Final cross-language similarity after translation: {final_similarity:.4f}")
-        print(f"Improvement: {final_similarity - initial_similarity:.4f}")
+        py_to_c_final_similarity = F.cosine_similarity(py_to_c_translated, c_embeddings, dim=1).mean()
+        c_to_py_final_similarity = F.cosine_similarity(c_to_py_translated, py_embeddings, dim=1).mean()
+        final_bidirectional_similarity = (py_to_c_final_similarity + c_to_py_final_similarity) / 2.0
+        print(f"Final bidirectional similarity after translation: {final_bidirectional_similarity:.4f}")
+        print(f"Improvement: {final_bidirectional_similarity - initial_similarity:.4f}")
     
     # Plot loss curves
     plt.figure(figsize=(12, 4))
@@ -163,20 +165,20 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
     
     print("\n=== Results Analysis ===")
     print(f"Initial similarity: {initial_similarity:.4f}")
-    print(f"Final similarity: {final_similarity:.4f}")
-    print(f"Change: {final_similarity - initial_similarity:.4f}")
+    print(f"Final Bidirectional similarity: {final_bidirectional_similarity:.4f}")
+    print(f"Change: {final_bidirectional_similarity - initial_similarity:.4f}")
     
     if initial_similarity > 0.8:
         print("\n🎉 CONCLUSION: DeepSeek Coder already provides excellent cross-language alignment!")
         print("This is actually a SUCCESS for DeepSeek, not a failure of vec2vec.")
         print("The model has learned shared representations across programming languages.")
         
-        if final_similarity > 0.7:
+        if final_bidirectional_similarity > 0.7:
             print("✅ Vec2vec maintained reasonable alignment during training")
         else:
             print("⚠️  Vec2vec disrupted the existing alignment - consider different hyperparameters")
     else:
-        if final_similarity > initial_similarity:
+        if final_bidirectional_similarity > initial_similarity:
             print("✅ Vec2vec successfully improved cross-language alignment!")
         else:
             print("❌ Vec2vec failed to improve alignment - may need hyperparameter tuning")
@@ -207,16 +209,21 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
             translated_sim = F.cosine_similarity(translated.squeeze(0), c_emb, dim=0)
             print(f"After translation: {translated_sim:.4f}")
     
-    model_path, metadata_path = save_vec2vec_model(
-        model=model,
-        trainer=trainer,
-        embedding_dim=embedding_dim,
-        initial_similarity=initial_similarity,
-        final_similarity=final_similarity,
-        training_epochs=training_epochs,
-        loss_weights=loss_weights,
-        model_name="python_c_translator"
-    )
+    # Save the trained model if it has improved and meets a quality threshold
+    if final_bidirectional_similarity > initial_similarity and final_bidirectional_similarity > 0.75:
+        print("\n💾 Saving trained model...")
+        model_path, metadata_path = save_vec2vec_model(
+            model=model,
+            trainer=trainer,
+            embedding_dim=embedding_dim,
+            initial_similarity=initial_similarity,
+            final_similarity=final_bidirectional_similarity,
+            training_epochs=training_epochs,
+            loss_weights=loss_weights,
+            model_name="python_c_translator"
+        )
+    else:
+        print(f"\nModel did not improve enough to be saved (final similarity: {final_bidirectional_similarity:.4f}).")
 
     print("\n=== MVP Complete ===")
     
