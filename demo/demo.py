@@ -69,7 +69,7 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
     
     # Initialize Vec2Vec model
     print("\nInitializing Vec2Vec model...")
-    model = CodeVec2Vec(embedding_dim, latent_dim=256) # tune for size/depth
+    model = CodeVec2Vec(embedding_dim, latent_dim=512) # tune for size/depth
     trainer = Vec2VecTrainer(model)
     
     # print("Training Vec2Vec model...")
@@ -82,11 +82,11 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
         print("Vec2Vec may not be necessary, but continuing with adjusted hyperparameters...")
         
         # Use more conservative hyperparameters for already-aligned embeddings
-        trainer = Vec2VecTrainer(model, learning_rate=0.0001)  # Much lower learning rate
+        trainer = Vec2VecTrainer(model, learning_rate=1e-3)  # Much lower learning rate
         # training_epochs = 100  # Fewer epochs
-        loss_weights = {'rec': 0.8, 'cycle': 0.15, 'vsp': 0.04, 'adv': 0.01}  # Focus on reconstruction
+        loss_weights = {'rec': 0.5, 'cycle': 0.3, 'vsp': 0.1, 'adv': 0.1}  # Focus on reconstruction
     else:
-        trainer = Vec2VecTrainer(model, learning_rate=0.001)
+        trainer = Vec2VecTrainer(model, learning_rate=1e-3)
         # training_epochs = 100
         loss_weights = {'rec': 0.5, 'cycle': 0.3, 'vsp': 0.1, 'adv': 0.1}
     
@@ -210,20 +210,35 @@ def demo_vec2vec_code_translation(PYTHON_SAMPLES, C_SAMPLES, training_epochs = 5
             print(f"After translation: {translated_sim:.4f}")
     
     # Save the trained model if it has improved and meets a quality threshold
-    if final_bidirectional_similarity > initial_similarity and final_bidirectional_similarity > 0.75:
-        print("\n💾 Saving trained model...")
-        model_path, metadata_path = save_vec2vec_model(
-            model=model,
-            trainer=trainer,
-            embedding_dim=embedding_dim,
-            initial_similarity=initial_similarity,
-            final_similarity=final_bidirectional_similarity,
-            training_epochs=training_epochs,
-            loss_weights=loss_weights,
-            model_name="python_c_translator"
-        )
-    else:
-        print(f"\nModel did not improve enough to be saved (final similarity: {final_bidirectional_similarity:.4f}).")
+    # I'm not sure I trust this. Need to review. 
+
+    print("\n💾 Saving trained model...")
+    model_path, metadata_path = save_vec2vec_model(
+        model=model,
+        trainer=trainer,
+        embedding_dim=embedding_dim,
+        initial_similarity=initial_similarity,
+        final_similarity=final_bidirectional_similarity,
+        training_epochs=training_epochs,
+        loss_weights=loss_weights,
+        model_name="python_c_translator"
+    )
+    print(f"\n💾 Model & metadata saved to {model_path} and {metadata_path}. ")
+
+    # if final_bidirectional_similarity > initial_similarity and final_bidirectional_similarity > 0.75:
+    #     print("\n💾 Saving trained model...")
+    #     model_path, metadata_path = save_vec2vec_model(
+    #         model=model,
+    #         trainer=trainer,
+    #         embedding_dim=embedding_dim,
+    #         initial_similarity=initial_similarity,
+    #         final_similarity=final_bidirectional_similarity,
+    #         training_epochs=training_epochs,
+    #         loss_weights=loss_weights,
+    #         model_name="python_c_translator"
+    #     )
+    # else:
+    #     print(f"\nModel did not improve enough to be saved (final similarity: {final_bidirectional_similarity:.4f}).")
 
     print("\n=== MVP Complete ===")
     

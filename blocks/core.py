@@ -9,20 +9,36 @@ import matplotlib.pyplot as plt
 
 from blocks.embed import CodeEmbedder
 
+class Vec2VecResidualBlock(nn.Module): 
+    """Residual block for Vec2VecAdapter internal process"""
+
+    def __init__(self, input_dim: int, output_dim: int):
+        super().__init__()
+        self.layer = nn.Linear(input_dim, output_dim)
+        self.norm = nn.LayerNorm(output_dim)
+        self.residual = (input_dim == output_dim)
+        self.act = nn.SiLU()
+
+    def forward(self, x):
+        out = self.norm( self.act(  self.layer(x) ) )
+
+        if self.residual:
+            out = out + x
+
+        return out 
+    
+
 class Vec2VecAdapter(nn.Module):
     """Adapter module for vec2vec - transforms embeddings to/from universal space"""
     
     def __init__(self, input_dim: int, latent_dim: int):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Linear(input_dim, latent_dim * 2),
-            nn.LayerNorm(latent_dim * 2),
-            nn.SiLU(),
-            nn.Linear(latent_dim * 2, latent_dim),
-            nn.LayerNorm(latent_dim),
-            nn.SiLU(),
-            nn.Linear(latent_dim, latent_dim)
-        )
+            Vec2VecResidualBlock(input_dim, latent_dim*2),
+            Vec2VecResidualBlock(latent_dim*2, latent_dim*2),
+            Vec2VecResidualBlock(latent_dim*2, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            )
         
     def forward(self, x):
         return self.layers(x)
@@ -34,17 +50,18 @@ class Vec2VecBackbone(nn.Module):
     def __init__(self, latent_dim: int):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Linear(latent_dim, latent_dim * 2),
-            nn.LayerNorm(latent_dim * 2),
-            nn.SiLU(),
-            nn.Linear(latent_dim * 2, latent_dim * 2),
-            nn.LayerNorm(latent_dim * 2),
-            nn.SiLU(),
-            nn.Linear(latent_dim * 2, latent_dim)
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
+            Vec2VecResidualBlock(latent_dim, latent_dim),
         )
         
     def forward(self, x):
-        return self.layers(x) + x  # Residual connection
+        return self.layers(x)  
 
 class Vec2VecDiscriminator(nn.Module):
     """Discriminator for adversarial training"""
