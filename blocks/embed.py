@@ -143,9 +143,14 @@ class CodeEmbedder:
         # Ensure the embedding is on the same device as the model
         inputs_embeds = inputs_embeds.to(self.model.device)
 
+        # Create an attention mask for the inputs_embeds.
+        # It has shape [batch_size, sequence_length], which is [batch_size, 1] here.
+        attention_mask = torch.ones(inputs_embeds.shape[:2], dtype=torch.long, device=inputs_embeds.device)
+
         with torch.no_grad():
             output_sequences = self.model.generate(
                 inputs_embeds=inputs_embeds,
+                attention_mask=attention_mask,
                 max_new_tokens=max_new_tokens,
                 num_beams=num_beams,
                 early_stopping=True,

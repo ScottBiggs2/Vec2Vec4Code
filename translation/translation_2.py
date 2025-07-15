@@ -145,12 +145,9 @@ Raw code:
         Pipeline: Code → Tokens → Vec2Vec → Tokens → Code
         """
         
-        # Step 1: Code → Tokens
-        print(f"🔍 Tokenizing {source_lang} code...")
-        source_tokens = self.embedder.tokenizer.encode(code, truncation=True, max_length=512)
-        
-        # Step 2: Tokens → Embeddings (for vec2vec input)
+        # Step 1 & 2: Code → Embedding (for vec2vec input)
         # Get a single embedding vector for the source code.
+        print(f"🔍 Generating embedding for {source_lang} code...")
         source_embedding = self.get_embedding(code, source_lang)  # Shape: [1, embedding_dim]
         
         # Step 3: Embedding → Embedding (vec2vec)
@@ -378,5 +375,4 @@ if __name__ == "__main__":
         parser.print_help()
 
 
-# python translation/translation_2.py models/python_c_translator_20250710_213344.pth --demo
-# python translation/translation_2.py models/python_c_translator_20250711_221956.pth --demo
+# python translation/translation_2.py models/python_c_translator_20250713_165702.pth --demo
