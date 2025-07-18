@@ -152,9 +152,9 @@ Cycle consistency: 0.8836
 - [ ] Domain adaptation (academic → production code)
 
 ## To-do: 
-- [] More refined embeddings to tokens function in translation_2.py, current method is poor
-- [] Upgrade code cleanup model from DeepSeek-Coder 1.3B. Maybe return to typical non-coding LLM?
-- [] Demonstrate quality translation of non-trivial code that is outside the training dataset
+- Upgrade code cleanup model from DeepSeek-Coder 1.3B. Maybe return to typical non-coding LLM?
+- Demonstrate quality translation of non-trivial code that is outside the training dataset
+- More data, more training, bigger model. 
 
 ## 📚 References
 
@@ -174,7 +174,7 @@ Contributions are welcome! Please feel free to:
 
 ## 📄 License
 
-[ADD YOUR LICENSE]
+MIT License
 
 ## 🙏 Acknowledgments
 
